@@ -1,6 +1,6 @@
 import requests
 
-url = "localhost:5000"
+url = "http://localhost:5000"
 
 # POST: Crear un nuevo mensaje
 def test_post_message():
@@ -30,16 +30,4 @@ if __name__ == "__main__":
     test_post_message()
 
     # Obtener todos los mensajes
-    test_get_messages()
-
-    # Obtener un mensaje por ID (prueba con ID 1)
-    test_get_message_by_id(1)
-
-    # Actualizar un mensaje por ID (prueba con ID 1)
-    test_put_message(1)
-
-    # Eliminar un mensaje por ID (prueba con ID 1)
-    test_delete_message(1)
-
-    # Verificar que el mensaje se eliminó correctamente
     test_get_messages()
