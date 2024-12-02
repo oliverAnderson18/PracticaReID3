@@ -22,7 +22,7 @@ def receive_message(message_id):
     if message_id not in messages:
         return jsonify({"Error": "Message not found"}), 404
 
-    return jsonify({message_id: messages[message_id]}), 200
+    return jsonify(messages), 200
 
 
 @app.route("/modify/<message_id>", methods=["PUT"])
