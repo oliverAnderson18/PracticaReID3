@@ -1,17 +1,19 @@
 import requests
 
-url = "http://localhost:5000"
+url = "http://127.0.0.1:5000"
 
 # POST: Crear un nuevo mensaje
 def test_post_message():
     data = {"content": "Hola desde requests"}
-    response = requests.post(url, json=data)
-    print("POST Response:", response.status_code, response.json())
+    response = requests.post("http://127.0.0.1:5000/send", json=data)
+    if response:
+        print("POST Response:", response.status_code, response.json())
 
 # GET: Obtener todos los mensajes
 def test_get_messages():
-    response = requests.get(url)
-    print("GET Response:", response.status_code, response.json())
+    response = requests.get("http://127.0.0.1:5000/receive")
+    if response:
+        print("GET Response:", response.status_code, response.json())
 
 # PUT: Actualizar un mensaje por ID
 def test_put_message(message_id):
