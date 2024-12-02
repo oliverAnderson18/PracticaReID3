@@ -47,5 +47,10 @@ def delete_resource(message_id):
     return jsonify({"Message": "Deleted successfully"}), 200
 
 
+@app.route("/")
+def index():
+    return """<h1>Message Application</h1><p>Modify endpoints for differente requests.</p>"""
+
+
 if __name__ == "__main__":
     app.run("127.0.0.1", 5000, debug=True)
