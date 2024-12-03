@@ -43,7 +43,7 @@ def modify_resource(message_id):
 
 
 
-@app.route("/delete", methods=["DELETE"])
+@app.route("/delete/<message_id>", methods=["DELETE"])
 def delete_resource(message_id):
     if message_id not in db.messages:
         return jsonify({"Error": "Message not found"}), 404
