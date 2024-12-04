@@ -26,8 +26,8 @@ def send_message():
 def receive_message():
     try:
         message = schemas.MessageSchema()
-    except ValueError as err:
-        return jsonify(err), 404
+    except ValueError as error:
+        return jsonify(error), 404
     return jsonify(db.messages), 200
 
 
