@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import request, jsonify
+from marshmallow import ValidationError
 import db
 import uuid
 import schemas
@@ -25,10 +26,13 @@ def send_message():
 @app.route("/messages", methods=["GET"])
 def receive_message():
     try:
-        message = schemas.MessageSchema()
-    except ValueError as error:
-        return jsonify(error), 404
-    return jsonify(db.messages), 200
+        schema = schemas.MessageSchema()
+        schema.load({"content": "dummy"})
+
+        return jsonify(db.messages), 200
+    except ValidationError as e:
+        return jsonify({"Error": e.messages["content"]}), 404
+
 
 
 @app.route("/modify/<message_id>", methods=["PUT"])
