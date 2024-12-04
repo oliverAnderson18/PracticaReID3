@@ -2,7 +2,7 @@ from flask import Flask
 from flask import request, jsonify
 import db
 import uuid
-from marshmallow import Schema, fields, validates, ValidationError
+import schemas
 
 app = Flask(__name__)
 
@@ -24,9 +24,10 @@ def send_message():
 
 @app.route("/messages", methods=["GET"])
 def receive_message():
-    if not db.messages:
-        return jsonify({"Error": "Messages not found"}), 404
-
+    try:
+        message = schemas.MessageSchema()
+    except ValueError as err:
+        return jsonify(err), 404
     return jsonify(db.messages), 200
 
 
