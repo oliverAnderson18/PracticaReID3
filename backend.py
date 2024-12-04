@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request, jsonify
 import db
 import uuid
+from marshmallow import Schema, fields, validates, ValidationError
 
 app = Flask(__name__)
 
