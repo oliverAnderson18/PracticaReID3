@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import request, jsonify
+from marshmallow import Schema, fields, validates, ValidationError
 import db
 import uuid
 from marshmallow import Schema, fields, validates, ValidationError
