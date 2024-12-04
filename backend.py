@@ -22,7 +22,7 @@ def send_message():
     return jsonify({uid: data["content"]}), 200
 
 
-@app.route("/receive", methods=["GET"])
+@app.route("/messages", methods=["GET"])
 def receive_message():
     if not db.messages:
         return jsonify({"Error": "Messages not found"}), 404
