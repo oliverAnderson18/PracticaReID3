@@ -29,4 +29,6 @@ if __name__ == "__main__":
 
     test_get_messages()
 
-    test_put_message('dec1d104fe034c11b05d7b4a132d4825')
+    test_put_message()
+
+    test_delete_message()
