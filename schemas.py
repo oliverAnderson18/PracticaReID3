@@ -9,23 +9,21 @@ def not_empty(value):
 
 
 def validate_message(value):
-    data = request.json
-    if not data or "content" not in data:
+    if not value:
         raise ValidationError("No content found in data.")
 
 
-def find_id(message_id):
-    if message_id not in db.messages:
+def find_id(value):
+    if not str(value) and str(value) not in db.messages:
         raise ValidationError("Id not in the database.")
-
-
-class MessageSchema(Schema):
-    content = fields.String(required=True, validate=not_empty)
-    id = fields.UUID(required=True)
 
 
 class SendMessageSchema(Schema):
     content = fields.String(required=True, validate=validate_message)
+
+
+class MessageSchema(Schema):
+    content = fields.String(required=True, validate=not_empty)
 
 
 class ModifyMessageSchema(Schema):
@@ -34,4 +32,4 @@ class ModifyMessageSchema(Schema):
 
 
 class DeleteMessageSchema(Schema):
-    id = fields.UUID(required=True, validate=find_id)
+    message_id = fields.UUID(required=True, validate=find_id)

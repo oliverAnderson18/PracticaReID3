@@ -14,10 +14,11 @@ def send_message():
     print("JSON Data:", request.json)
 
     schema = schemas.SendMessageSchema()
+    data = request.json
     try:
-        data = schema.load(request.json)
+        schema.load(data)
     except ValidationError as e:
-        return jsonify({"Error": e.messages}), 400
+        return jsonify({"Error": e.messages}), 404
 
     uid = uuid.uuid4().hex
     db.messages[uid] = data["content"]
@@ -31,7 +32,7 @@ def receive_message():
     schema = schemas.MessageSchema()
 
     try:
-        schema.load({"content": "dummy", "id": uuid.uuid4()})
+        schema.load({"content": "dummy"})
     except ValidationError as e:
         return jsonify({"Error": e.messages["content"]}), 404
 
@@ -41,24 +42,26 @@ def receive_message():
 @app.route("/modify/<message_id>", methods=["PUT"])
 def modify_resource(message_id):
     schema = schemas.ModifyMessageSchema()
-
     request_data = request.json
+    print(request_data)
     request_data["message_id"] = message_id
-
+    print(request_data)
     try:
-        data = schema.load(request_data)
+        schema.load(request_data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
-    db.messages[message_id] = data["content"]
+    db.messages[message_id] = request_data["content"]
     return jsonify({message_id: db.messages[message_id]}), 200
 
 
+@app.route("/delete/<message_id>", methods=["DELETE"])
 def delete_resource(message_id):
     schema = schemas.DeleteMessageSchema()
-
+    data = {"message_id": message_id}
+    print(data)
     try:
-        schema.load({"id": message_id})
+        schema.load(data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
@@ -72,4 +75,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run("127.0.0.1", 5000, debug=True)
+    app.run("0.0.0.0", port=5000, debug=True)
