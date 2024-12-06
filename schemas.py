@@ -1,5 +1,4 @@
-from marshmallow import Schema, validates, fields, ValidationError
-from flask import request
+from marshmallow import Schema, fields, ValidationError
 import db
 
 
