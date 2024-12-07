@@ -21,7 +21,7 @@ def send_message():
         return jsonify({"Error": e.messages}), 404
 
     uid = uuid.uuid4().hex
-    db.messages[uid] = data["content"]
+    db.messages.append({"id": uid, "content": data["content"]})
     print("Message stored:", db.messages)
 
     return jsonify({uid: data["content"]}), 200
@@ -51,8 +51,11 @@ def modify_resource(message_id):
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
-    db.messages[message_id] = request_data["content"]
-    return jsonify({message_id: db.messages[message_id]}), 200
+    i = 0
+    while db.messages[i]["id"] != message_id:
+        i+=1
+    db.messages[i]["content"] = request_data["content"]
+    return jsonify({message_id: db.messages[i]["id"]}), 200
 
 
 @app.route("/delete/<message_id>", methods=["DELETE"])
@@ -64,8 +67,12 @@ def delete_resource(message_id):
         schema.load(data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
+    
+    i = 0
+    while db.messages[i]["id"] != message_id:
+        i+=1
 
-    del db.messages[message_id]
+    del db.messages[i]
     return jsonify({"Message": "Deleted successfully"}), 200
 
 
