@@ -1,11 +1,18 @@
-from flask import Flask
+import dataclasses
+
+from flask import Flask, session
 from flask import request, jsonify
+from flask_session import Session
 from marshmallow import ValidationError
 import db
 import uuid
 import schemas
+import users_db
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "OliverJose"
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 
 @app.route("/send", methods=["POST"])
@@ -74,6 +81,56 @@ def delete_resource(message_id):
 
     del db.messages[i]
     return jsonify({"Message": "Deleted successfully"}), 200
+
+
+@app.route("/register", methods=["POST"])
+def create_user():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    users_db.users[username] = password
+    return jsonify({username:password}), 200
+
+
+@app.route("/users", methods=["GET"])
+def get_users():
+    if not users_db.users:
+        return jsonify({"Error": "User database empty"}), 404
+    else:
+        return jsonify({users_db.users}), 200
+
+
+@app.route("/login", methods=["POST"])
+def generate_cookie():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"Error": "User and password not found"}), 400
+
+    if users_db.users[username] == password:
+        session["username"] = username
+        return jsonify({"Message": "Login succesful"}), 200
+    else:
+        return jsonify({"Error": "Credentials incorrect"}), 401
+
+
+@app.route("/logout", methods=["DELETE", "POST"])
+def create_user():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"Error": "User and password not found"}), 400
+
+    if users_db.users[username] == password:
+        del users_db.users["username"]
+        return jsonify("Message: Deleted user succesfully"), 200
+    else:
+        return jsonify({"Error": "Credentials incorrect"}), 401
 
 
 @app.route("/")
