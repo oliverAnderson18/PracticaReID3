@@ -1,5 +1,4 @@
 import dataclasses
-
 from flask import Flask, session
 from flask import request, jsonify
 from flask_session import Session
@@ -8,6 +7,7 @@ import db
 import uuid
 import schemas
 import users_db
+
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "OliverJose"
@@ -98,7 +98,7 @@ def get_users():
     if not users_db.users:
         return jsonify({"Error": "User database empty"}), 404
     else:
-        return jsonify({users_db.users}), 200
+        return jsonify(users_db.users), 200
 
 
 @app.route("/login", methods=["POST"])
@@ -112,13 +112,15 @@ def generate_cookie():
 
     if users_db.users[username] == password:
         session["username"] = username
-        return jsonify({"Message": "Login succesful"}), 200
+        session["logged_in"] = True
+        if session.get("logged_in"):
+            return f"Hola, {session["username"]}! Has iniciado sesión correctamente", 200
     else:
         return jsonify({"Error": "Credentials incorrect"}), 401
 
 
 @app.route("/logout", methods=["DELETE", "POST"])
-def create_user():
+def delete_user():
     data = request.json
     username = data.get("username")
     password = data.get("password")
@@ -127,8 +129,10 @@ def create_user():
         return jsonify({"Error": "User and password not found"}), 400
 
     if users_db.users[username] == password:
-        del users_db.users["username"]
-        return jsonify("Message: Deleted user succesfully"), 200
+        session.pop("username", None)
+        session.clear()
+        if not session.get("logged_id"):
+            return "Session ended", 200
     else:
         return jsonify({"Error": "Credentials incorrect"}), 401
 
@@ -139,4 +143,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", port=5000, debug=True)
+    app.run("127.0.0.1", port=5000, debug=True) 

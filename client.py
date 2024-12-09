@@ -1,6 +1,7 @@
 import requests
 from db import messages
 
+session = requests.Session()
 
 def test_post_message():
     data = {"content": "Hola desde requests"}
