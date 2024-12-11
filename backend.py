@@ -1,4 +1,3 @@
-import dataclasses
 from flask import Flask, session
 from flask import request, jsonify
 from flask_session import Session
