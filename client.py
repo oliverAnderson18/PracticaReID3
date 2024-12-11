@@ -39,6 +39,59 @@ def test_bad_put(message_id):
     print(f"PUT Response (ID {message_id}):", response.status_code, response.json())
 
 
+def test_create_user():
+    creation = {"username": "JoseMa", "password": "miMadresita"}
+    response = session.post("http://127.0.0.1:5000/register", json=creation)
+    print("POST Response:", response.status_code, response.json())
+
+
+def test_get_users():
+    response = session.get(f"http://127.0.0.1:5000/users")
+    print("GET Response:", response.status_code, response.json())
+
+
+def test_generate_cookie():
+    user_data = {"username": "JoseMa", "password": "miMadresita"}
+    response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
+    print("POST Response:", response.status_code, response.json())
+
+
+def test_delete_user():
+    user_data = {"username": "JoseMa", "password": "miMadresita"}
+    response = session.delete(f"http://127.0.0.1:5000/logout", json=user_data)
+    print("DELETE Response:", response.status_code, response.json())
+
+
+def test_bad_create_user():
+    pass
+
+
+def test_bad_get_users():
+    pass
+
+
+def test_bad_generate_cookie():
+    pass
+
+
+def test_bad_delete_user():
+    pass
+
+
+def test_good_session():
+    test_create_user()
+    test_get_users()
+    test_generate_cookie()
+    test_delete_user()
+
+
+def test_bad_session():
+    test_bad_create_user()
+    test_bad_get_users()
+    test_bad_generate_cookie()
+    test_bad_delete_user()
+
+
 def test_good():
     values = test_post_message()
     test_get_messages()
@@ -58,3 +111,4 @@ def test_bad():
 if __name__ == "__main__":
     test_good()
     test_bad()
+    test_good_session()
