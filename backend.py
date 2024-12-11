@@ -62,7 +62,7 @@ def modify_resource(message_id):
     while db.messages[i]["id"] != message_id:
         i+=1
     db.messages[i]["content"] = request_data["content"]
-    return jsonify({message_id: db.messages[i]["id"]}), 200
+    return jsonify({message_id: db.messages[i]["content"]}), 200
 
 
 @app.route("/delete/<message_id>", methods=["DELETE"])
@@ -85,12 +85,18 @@ def delete_resource(message_id):
 
 @app.route("/register", methods=["POST"])
 def create_user():
+    schema = schemas.RegisterSchema()
     data = request.json
     username = data.get("username")
     password = data.get("password")
-
     users_db.users[username] = password
-    return jsonify({username:password}), 200
+
+    try:
+        schema.load(data)
+    except ValidationError as e:
+        return jsonify({"Error": e.messages}), 400
+
+    return jsonify({username: password}), 200
 
 
 @app.route("/users", methods=["GET"])
@@ -103,18 +109,21 @@ def get_users():
 
 @app.route("/login", methods=["POST"])
 def generate_cookie():
+    schema = schemas.LoginSchema()
     data = request.json
     username = data.get("username")
     password = data.get("password")
 
-    if not username or not password:
-        return jsonify({"Error": "User and password not found"}), 400
+    try:
+        schema.load(data)
+    except ValidationError as e:
+        return jsonify({"Error": e.messages}), 400
 
     if users_db.users[username] == password:
         session["username"] = username
         session["logged_in"] = True
         if session.get("logged_in"):
-            return f"Hola, {session["username"]}! Has iniciado sesión correctamente", 200
+            return f"Hello, {session["username"]}! You have logged in successfully", 200
     else:
         return jsonify({"Error": "Credentials incorrect"}), 401
 
@@ -139,7 +148,7 @@ def delete_user():
 
 @app.route("/")
 def index():
-    return """<h1>Message Application</h1><p>Modify endpoints for differente requests.</p>"""
+    return """<h1>Message Application</h1><p>Modify endpoints for different requests.</p>"""
 
 
 if __name__ == "__main__":
