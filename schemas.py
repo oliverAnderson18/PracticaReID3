@@ -1,11 +1,17 @@
 from marshmallow import Schema, fields, ValidationError
 import db
+import users_db
 
 
 def not_empty(value):
     if not db.messages:
         raise ValidationError("Database can't be empty.")
 
+
+def not_user_empty(value):
+    if not users_db.users:
+        raise ValidationError("Database can't be empty")
+    
 
 def validate_message(value):
     if not value:
@@ -18,12 +24,12 @@ def find_id(value):
 
 
 def validate_username(value):
-    if len(value) < 6 or " " in value:
+    if value and len(value) < 6 or " " in value:
         raise ValidationError("Username incorrect")
 
 
 def validate_password(value):
-    if not (len(value) >= 8 and ' ' not in value and any(c.isalpha() for c in value) and any(
+    if value and not (len(value) >= 8 and ' ' not in value and any(c.isalpha() for c in value) and any(
             c.isdigit() for c in value)):
         raise ValidationError("Password incorrect")
 
@@ -50,6 +56,16 @@ class RegisterSchema(Schema):
     password = fields.String(required=True, validate=validate_password)
 
 
+class UserSchema(Schema):
+    content = fields.String(required=True, validate=not_user_empty)
+
+
 class LoginSchema(Schema):
     username = fields.String(required=True, validate=validate_username)
     password = fields.String(required=True, validate=validate_password)
+
+
+class LogoutSchema(Schema):
+    username = fields.String(required=True, validate=validate_username)
+    password = fields.String(required=True, validate=validate_password)
+

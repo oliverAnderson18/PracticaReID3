@@ -39,9 +39,8 @@ def test_bad_put(message_id):
     print(f"PUT Response (ID {message_id}):", response.status_code, response.json())
 
 
-def test_create_user():
-    creation = {"username": "JoseMa", "password": "miMa2dresita"}
-    response = session.post("http://127.0.0.1:5000/register", json=creation)
+def test_create_user(user_data):
+    response = session.post("http://127.0.0.1:5000/register", json=user_data)
     print("POST Response:", response.status_code, response.json())
 
 
@@ -50,47 +49,60 @@ def test_get_users():
     print("GET Response:", response.status_code, response.json())
 
 
-def test_generate_cookie():
-    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+def test_generate_cookie(user_data):
     response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
     print("POST Response:", response.status_code, response.json())
 
 
-def test_delete_user():
-    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+def test_delete_user(user_data):
     response = session.delete(f"http://127.0.0.1:5000/logout", json=user_data)
     print("DELETE Response:", response.status_code, response.json())
 
 
-def test_bad_create_user():
-    pass
-
-
-def test_bad_get_users():
-    pass
-
-
-def test_bad_generate_cookie():
-    pass
-
-
-def test_bad_delete_user():
-    pass
-
-
 def test_good_session():
-    test_create_user()
+    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+    test_create_user(user_data)
     test_get_users()
-    test_generate_cookie()
-    test_delete_user()
+    test_generate_cookie(user_data)
+    test_delete_user(user_data)
 
 
 def test_bad_session():
-    test_bad_create_user()
-    test_bad_get_users()
-    test_bad_generate_cookie()
-    test_bad_delete_user()
+    test_get_users()
+    user_data1 = {"username": "", "password": "miMa2dresita"}
+    user_data2 = {"username": "JoseMa", "password": ""}
+    user_data3 = {"username": "Josa", "password": "sdla23nkvf"}
+    user_data4 = {"username": "Jos a", "password": "sdla23nkvf"}
+    user_data5 = {"username": "JoseMa", "password": "sd"}
+    user_data6 = {"username": "JoseMa", "password": "151221342341"}
+    user_data7 = {"username": "JoseMa", "password": "jasldfjasldf"}
+    test_create_user(user_data1)
+    test_generate_cookie(user_data1)
+    test_delete_user(user_data1)
 
+    test_create_user(user_data2)
+    test_generate_cookie(user_data2)
+    test_delete_user(user_data2)
+
+    test_create_user(user_data3)
+    test_generate_cookie(user_data3)
+    test_delete_user(user_data3)
+
+    test_create_user(user_data4)
+    test_generate_cookie(user_data4)
+    test_delete_user(user_data4)
+
+    test_create_user(user_data5)
+    test_generate_cookie(user_data5)
+    test_delete_user(user_data5)
+
+    test_create_user(user_data6)
+    test_generate_cookie(user_data6)
+    test_delete_user(user_data6)
+
+    test_create_user(user_data7)
+    test_generate_cookie(user_data7)
+    test_delete_user(user_data7)
 
 def test_good():
     values = test_post_message()
