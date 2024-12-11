@@ -32,4 +32,3 @@ class ModifyMessageSchema(Schema):
 
 class DeleteMessageSchema(Schema):
     message_id = fields.UUID(required=True, validate=find_id)
-

@@ -114,7 +114,7 @@ def generate_cookie():
         session["username"] = username
         session["logged_in"] = True
         if session.get("logged_in"):
-            return jsonify({"Exito": f"Hola, {session["username"]}! Has iniciado sesión correctamente"}), 200
+            return f"Hola, {session["username"]}! Has iniciado sesión correctamente", 200
     else:
         return jsonify({"Error": "Credentials incorrect"}), 401
 
@@ -132,7 +132,7 @@ def delete_user():
         session.pop("username", None)
         session.clear()
         if not session.get("logged_id"):
-            return jsonify({"Exito": "Session ended"}), 200
+            return "Session ended", 200
     else:
         return jsonify({"Error": "Credentials incorrect"}), 401
 
