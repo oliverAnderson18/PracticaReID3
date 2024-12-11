@@ -40,7 +40,7 @@ def test_bad_put(message_id):
 
 
 def test_create_user():
-    creation = {"username": "JoseMa", "password": "miMadresita"}
+    creation = {"username": "JoseMa", "password": "miMa2dresita"}
     response = session.post("http://127.0.0.1:5000/register", json=creation)
     print("POST Response:", response.status_code, response.json())
 
@@ -51,13 +51,13 @@ def test_get_users():
 
 
 def test_generate_cookie():
-    user_data = {"username": "JoseMa", "password": "miMadresita"}
+    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
     response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
     print("POST Response:", response.status_code, response.json())
 
 
 def test_delete_user():
-    user_data = {"username": "JoseMa", "password": "miMadresita"}
+    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
     response = session.delete(f"http://127.0.0.1:5000/logout", json=user_data)
     print("DELETE Response:", response.status_code, response.json())
 
