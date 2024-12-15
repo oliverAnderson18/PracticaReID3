@@ -24,12 +24,15 @@ def find_id(value):
 
 
 def validate_username(value):
-    if value and len(value) < 6 or " " in value:
+    if not value or len(value) < 6 or " " in value or value in users_db.users:
         raise ValidationError("Username incorrect")
 
+def validate_username_logs(value):
+    if not value or len(value) < 6 or " " in value or not value in users_db.users:
+        raise ValidationError("Username incorrect")
 
 def validate_password(value):
-    if value and not (len(value) >= 8 and ' ' not in value and any(c.isalpha() for c in value) and any(
+    if not value or not (len(value) >= 8 and ' ' not in value and any(c.isalpha() for c in value) and any(
             c.isdigit() for c in value)):
         raise ValidationError("Password incorrect")
 
@@ -61,11 +64,12 @@ class UserSchema(Schema):
 
 
 class LoginSchema(Schema):
-    username = fields.String(required=True, validate=validate_username)
+    username = fields.String(required=True, validate=validate_username_logs)
     password = fields.String(required=True, validate=validate_password)
 
 
 class LogoutSchema(Schema):
-    username = fields.String(required=True, validate=validate_username)
+    username = fields.String(required=True, validate=validate_username_logs)
     password = fields.String(required=True, validate=validate_password)
+
 

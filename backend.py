@@ -10,7 +10,7 @@ import os
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SECRET_KEY"] = "SECRET_KEY"
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
@@ -89,10 +89,9 @@ def create_user():
     data = request.json
     username = data.get("username")
     password = data.get("password")
-    users_db.users[username] = password
-
     try:
         schema.load(data)
+        users_db.users[username] = password
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 400
 
@@ -124,7 +123,9 @@ def generate_cookie():
             session["logged_in"] = True
             if session.get("logged_in"):
                 return jsonify({"Success": f"Hello, {session["username"]}! You have logged in correctly"}), 200
-            
+        else:
+            return jsonify({"Error": "password incorrect"}), 401
+
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 401
 
@@ -143,6 +144,10 @@ def delete_user():
             session.clear()
             if not session.get("logged_id"):
                 return jsonify({"Exito": "Session ended"}), 200
+            
+        else:
+            return jsonify({"Error": "password incorrect"}), 401
+
     except ValidationError as e:
         return jsonify({"Error": "Credentials incorrect"}), 401
 

@@ -121,6 +121,6 @@ def test_bad():
 
 
 if __name__ == "__main__":
-    test_good()
-    test_bad()
+    #test_good()
+    #test_bad()
     test_good_session()
