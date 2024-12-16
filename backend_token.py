@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from marshmallow import ValidationError
@@ -8,7 +9,7 @@ import users_db
 import datetime
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "SECRET_KEY"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = "JWT_SECRET_KEY"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(minutes=30)
 jwt = JWTManager(app)
