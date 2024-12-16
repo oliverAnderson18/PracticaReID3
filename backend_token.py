@@ -19,6 +19,67 @@ app.config["JWT_SESSION_TYPE"] = "JWT_SECRET_KEY"
 jwt = JWTManager(app)
 
 
+
+@app.route("/send", methods=["POST"])
+@jwt_required()
+def send_message():
+    current_user = get_jwt_identity()
+    schema = schemas.SendMessageSchema()
+    data = request.json
+
+    try:
+        schema.load(data)
+    except ValidationError as e:
+        return jsonify({"Error": e.messages}), 404
+
+    uid = uuid.uuid4().hex
+    db.messages.append({"id": uid, "content": data["content"]})
+    return jsonify({uid: data["content"]}), 200
+
+
+@app.route("/messages", methods=["GET"])
+@jwt_required()
+def receive_message():
+    current_user = get_jwt_identity()
+    return jsonify(db.messages), 200
+
+
+@app.route("/modify/<message_id>", methods=["PUT"])
+@jwt_required()
+def modify_resource(message_id):
+    current_user = get_jwt_identity()
+    schema = schemas.ModifyMessageSchema()
+    request_data = request.json
+    request_data["message_id"] = message_id
+
+    try:
+        schema.load(request_data)
+    except ValidationError as e:
+        return jsonify({"Error": e.messages}), 404
+
+    i = 0
+    while db.messages[i]["id"] != message_id:
+        i+=1
+    db.messages[i]["content"] = request_data["content"]
+    return jsonify({message_id: db.messages[i]["content"]}), 200
+
+
+@app.route("/delete/<message_id>", methods=["DELETE"])
+@jwt_required()
+def delete_resource(message_id):
+    current_user = get_jwt_identity()
+
+    for i, message in enumerate(db.messages):
+        if message["id"] == message_id:
+            if message["author"] != current_user:
+                return jsonify({"Error": "Unauthorized deletion attempt"}), 403
+            del db.messages[i]
+            return jsonify({"Message": "Deleted successfully"}), 200
+
+    return jsonify({"Error": "Message not found"}), 404
+
+
+
 @app.route("/register", methods=["POST"])
 def create_user():
     schema = schemas.RegisterSchema()
