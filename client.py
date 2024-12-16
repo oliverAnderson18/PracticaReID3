@@ -3,25 +3,6 @@ from db import messages
 
 session = requests.Session()
 access_token = None
-BASE_URL = "http://127.0.0.1:5000"
-
-
-def authenticate_user(username, password):
-    global access_token
-    response = session.post(f"{BASE_URL}/login", json={"username": username, "password": password})
-    if response.status_code == 200:
-        access_token = response.json().get("token")
-        print("Login successful. Token acquired.")
-    else:
-        print("Login failed:", response.json())
-
-
-def test_protected_post_message():
-    global access_token
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = session.post(f"{BASE_URL}/send", headers=headers, json={"content": "Protected message"})
-    print("POST Response:", response.status_code, response.json())
-    return list(response.json())
 
 
 def test_post_message():
@@ -128,7 +109,6 @@ def test_bad_session():
     test_generate_cookie(user_data7)
     test_delete_user(user_data7)
 
-
 def test_good():
     values = test_post_message()
     test_get_messages()
@@ -146,6 +126,12 @@ def test_bad():
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     authenticate_user("testuser", "password123")
     if access_token:
         test_protected_post_message()
+=======
+    #test_good()
+    #test_bad()
+    test_good_session()
+>>>>>>> parent of 3bf7858 (Modificado post en el client.py)
