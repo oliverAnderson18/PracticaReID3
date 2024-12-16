@@ -2,6 +2,8 @@ import requests
 from db import messages
 
 session = requests.Session()
+access_token = None
+
 
 def test_post_message(data):
     response = requests.post(f"http://127.0.0.1:5000/send", json=data)
@@ -48,8 +50,13 @@ def test_get_users():
 
 
 def test_generate_cookie(user_data):
+    global access_token
     response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
     print("POST Response:", response.cookies, response.status_code, response.json())
+    if response.status_code() == 200:
+        access_token = response.json.get("access_token")
+    print("POST Response:", response.status_code, response.json())
+
 
 
 def test_delete_user(user_data):
