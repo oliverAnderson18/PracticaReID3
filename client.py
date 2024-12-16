@@ -3,8 +3,7 @@ from db import messages
 
 session = requests.Session()
 
-def test_post_message():
-    data = {"content": "Hola desde requests"}
+def test_post_message(data):
     response = requests.post(f"http://127.0.0.1:5000/send", json=data)
     print("POST Response:", response.status_code, response.json())
     return list(response.json())
@@ -15,9 +14,8 @@ def test_get_messages():
     print("GET Response:", response.status_code, response.json())
 
 
-def test_put_message(message_id):
-    payload = {"content": "Mensaje actualizado con requests"}
-    response = requests.put(f"http://127.0.0.1:5000/modify/{message_id}", json=payload)
+def test_put_message(message_id, data):
+    response = requests.put(f"http://127.0.0.1:5000/modify/{message_id}", json=data)
     print(f"PUT Response (ID {message_id}):", response.status_code, response.json())
 
 
@@ -51,7 +49,7 @@ def test_get_users():
 
 def test_generate_cookie(user_data):
     response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
-    print("POST Response:", response.status_code, response.json())
+    print("POST Response:", response.cookies, response.status_code, response.json())
 
 
 def test_delete_user(user_data):
@@ -61,9 +59,21 @@ def test_delete_user(user_data):
 
 def test_good_session():
     user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+    data1 = {"content": "1"}
+    data2 = {"content": "2"}
+    data3 = {"content": "3"}
+    payload = {"content": "Mensaje actualizado con requests"}
     test_create_user(user_data)
-    test_get_users()
     test_generate_cookie(user_data)
+    test_get_users()
+    values1 = test_post_message(data1)
+    values2 = test_post_message(data2)
+    values3 = test_post_message(data3)
+    test_get_messages()
+    test_put_message(values1[0], payload)
+    test_get_messages()
+    test_delete_message(values3[0])
+    test_get_messages()
     test_delete_user(user_data)
 
 
@@ -105,16 +115,25 @@ def test_bad_session():
     test_delete_user(user_data7)
 
 def test_good():
-    values = test_post_message()
+    data = {"content": "Hola desde requests"}
+    values = test_post_message(data)
+    payload = {"content": "Mensaje actualizado con requests"}
     test_get_messages()
-    test_put_message(values[0])
+    test_put_message(values[0], payload)
     test_delete_message(values[0])
 
 
+def test_prueba():
+    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+    test_create_user(user_data)
+    test_generate_cookie(user_data)
+    test_delete_user(user_data)
+
 def test_bad():
+    data = {"content": "Hola desde requests"}
     test_get_messages() #Nothing in db so it must be 404
     test_bad_post()
-    values = test_post_message()
+    values = test_post_message(data)
     test_put_message(1341)
     test_bad_put(values[0])
     test_delete_message(234)
@@ -123,4 +142,6 @@ def test_bad():
 if __name__ == "__main__":
     #test_good()
     #test_bad()
-    test_good_session()
+    #test_good_session()
+    #test_bad_session()
+    test_prueba()
