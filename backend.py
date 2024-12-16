@@ -2,6 +2,7 @@ from flask import Flask, session
 from flask import request, jsonify
 from flask_session import Session
 from marshmallow import ValidationError
+from werkzeug.security import generate_password_hash, check_password_hash
 import db
 import uuid
 import schemas
@@ -11,6 +12,8 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+print(os.getenv("SECRET_KEY"))
+print("SECRET_KEY configurado:", app.config["SECRET_KEY"])
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
@@ -91,7 +94,8 @@ def create_user():
     password = data.get("password")
     try:
         schema.load(data)
-        users_db.users[username] = password
+        passw = generate_password_hash(password)
+        users_db.users[username] = passw
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 400
 
@@ -118,11 +122,12 @@ def generate_cookie():
 
     try:
         schema.load(data)
-        if users_db.users[username] == password:
+        if check_password_hash(users_db.users[username], password):
             session["username"] = username
             session["logged_in"] = True
             if session.get("logged_in"):
-                return jsonify({"Success": f"Hello, {session["username"]}! You have logged in correctly"}), 200
+                return jsonify({"Success": f"Hello, {session['username']}! You have logged in correctly"}), 200
+
         else:
             return jsonify({"Error": "password incorrect"}), 401
 
@@ -139,10 +144,10 @@ def delete_user():
 
     try:
         schema.load(data)
-        if users_db.users[username] == password:
+        if check_password_hash(users_db.users[username], password):
             session.pop("username", None)
             session.clear()
-            if not session.get("logged_id"):
+            if not session.get("logged_in"):
                 return jsonify({"Exito": "Session ended"}), 200
             
         else:
@@ -150,6 +155,11 @@ def delete_user():
 
     except ValidationError as e:
         return jsonify({"Error": "Credentials incorrect"}), 401
+
+
+@app.route("/get_session", methods=["GET"])
+def get_session():
+    return jsonify({"session_content": dict(session)})
 
 
 @app.route("/")

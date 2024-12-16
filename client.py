@@ -53,9 +53,9 @@ def test_generate_cookie(user_data):
     global access_token
     response = session.post(f"http://127.0.0.1:5000/login", json=user_data)
     print("POST Response:", response.cookies, response.status_code, response.json())
-    if response.status_code() == 200:
-        access_token = response.json.get("access_token")
-    print("POST Response:", response.status_code, response.json())
+    #if response.status_code() == 200:
+    #    access_token = response.json.get("access_token")
+    #print("POST Response:", response.status_code, response.json())
 
 
 
@@ -145,10 +145,30 @@ def test_bad():
     test_bad_put(values[0])
     test_delete_message(234)
 
+def test_get_session():
+    user_data = {"username": "JoseMa", "password": "miMa2dresita"}
+    response1 = session.post("http://127.0.0.1:5000/register", json=user_data)
+    print("Register Response:", response1.json())
+    response2 = session.post("http://127.0.0.1:5000/login", json=user_data)
+    print("Login Response:", response2.json())
+    response3 = session.get("http://127.0.0.1:5000/get_session")
+    print("Session Content after login:", response3.json())
+    data = {"content": "Hola desde requests"}
+    response4 = session.post("http://127.0.0.1:5000/send", json=data)
+    print("Send Message Response:", response4.json())
+    response5 = session.get("http://127.0.0.1:5000/messages")
+    print("Messages:", response5.json())
+    response6 = session.get("http://127.0.0.1:5000/get_session")
+    print("Session Content after sending a message:", response6.json())
+    response7 = session.post("http://127.0.0.1:5000/logout", json=user_data)
+    print("Logout Response:", response7.json())
+    response8 = session.get("http://127.0.0.1:5000/get_session")
+    print("Session Content after logout:", response8.json())
 
 if __name__ == "__main__":
     #test_good()
     #test_bad()
     #test_good_session()
     #test_bad_session()
-    test_prueba()
+    #test_prueba()
+    test_get_session()
