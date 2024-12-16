@@ -8,6 +8,7 @@ import uuid
 import schemas
 import users_db
 import os
+import datetime
 
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ print(os.getenv("SECRET_KEY"))
 print("SECRET_KEY configurado:", app.config["SECRET_KEY"])
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["JWT_SESSION_TYPE"] = "JWT_SECRET_KEY"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(minutes=30)
 jwt = JWTManager(app)
 
 
@@ -23,60 +25,63 @@ jwt = JWTManager(app)
 @app.route("/send", methods=["POST"])
 @jwt_required()
 def send_message():
-    current_user = get_jwt_identity()
     schema = schemas.SendMessageSchema()
     data = request.json
 
     try:
         schema.load(data)
+        if get_jwt_identity():
+            uid = uuid.uuid4().hex
+        db.messages.append({"id": uid, "content": data["content"]})
+        return jsonify({uid: data["content"]}), 200
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
-
-    uid = uuid.uuid4().hex
-    db.messages.append({"id": uid, "content": data["content"]})
-    return jsonify({uid: data["content"]}), 200
 
 
 @app.route("/messages", methods=["GET"])
 @jwt_required()
 def receive_message():
-    current_user = get_jwt_identity()
-    return jsonify(db.messages), 200
+    if get_jwt_identity():
+        return jsonify(db.messages), 200
 
 
 @app.route("/modify/<message_id>", methods=["PUT"])
 @jwt_required()
 def modify_resource(message_id):
-    current_user = get_jwt_identity()
     schema = schemas.ModifyMessageSchema()
     request_data = request.json
     request_data["message_id"] = message_id
 
     try:
         schema.load(request_data)
+        if get_jwt_identity():
+            i = 0
+            while db.messages[i]["id"] != message_id:
+                i+=1
+            db.messages[i]["content"] = request_data["content"]
+            return jsonify({message_id: db.messages[i]["content"]}), 200
+        
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
-
-    i = 0
-    while db.messages[i]["id"] != message_id:
-        i+=1
-    db.messages[i]["content"] = request_data["content"]
-    return jsonify({message_id: db.messages[i]["content"]}), 200
 
 
 @app.route("/delete/<message_id>", methods=["DELETE"])
 @jwt_required()
 def delete_resource(message_id):
-    current_user = get_jwt_identity()
-
-    for i, message in enumerate(db.messages):
-        if message["id"] == message_id:
-            if message["author"] != current_user:
-                return jsonify({"Error": "Unauthorized deletion attempt"}), 403
+    schema = schemas.DeleteMessageSchema()
+    data = {"message_id": message_id}
+    print(data)
+    try:
+        schema.load(data)
+        if get_jwt_identity():
+            i = 0
+            while db.messages[i]["id"] != message_id:
+                i+=1
             del db.messages[i]
             return jsonify({"Message": "Deleted successfully"}), 200
-
-    return jsonify({"Error": "Message not found"}), 404
+    except ValidationError as e:
+        return jsonify({"Error": e.messages}), 404
+    
 
 
 
@@ -97,18 +102,18 @@ def create_user():
 
 
 @app.route("/users", methods=["GET"])
+@jwt_required()
 def get_users():
     schema = schemas.UserSchema()
     try:
         schema.load({"content": "dummy"})
+        if get_jwt_identity():
+            return jsonify(users_db.users), 200
     except ValidationError as e:
         return jsonify({"Error": "User database empty"}), 404
 
-    return jsonify(users_db.users), 200
-
 
 @app.route("/login", methods=["POST"])
-@jwt_required()
 def generate_token():
     schema = schemas.LoginSchema()
     data = request.json
@@ -131,5 +136,5 @@ def index():
     return """<h1>Message Application</h1><p>Modify endpoints for different requests.</p>"""
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     app.run("127.0.0.1", port=5000, debug=True)
