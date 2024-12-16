@@ -1,84 +1,86 @@
-from flask import Flask, session
-from flask import request, jsonify
+from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 import db
 import uuid
 import schemas
 import users_db
+import datetime
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "SECRET_KEY"
-app.config["JWT_SESSION_TYPE"] = "JWT_SECRET_KEY"
+app.config["JWT_SECRET_KEY"] = "JWT_SECRET_KEY"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(minutes=30)
 jwt = JWTManager(app)
 
 
-@app.route("/send", methods=["POST"])
-def send_message():
-    print("Headers:", request.headers)
-    print("JSON Data:", request.json)
+def generate_token(username):
+    return create_access_token(identity=username)
 
+
+def verify_token():
+    return get_jwt_identity()
+
+
+@app.route("/send", methods=["POST"])
+@jwt_required()
+def send_message():
+    current_user = verify_token()
     schema = schemas.SendMessageSchema()
     data = request.json
+
     try:
         schema.load(data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
     uid = uuid.uuid4().hex
-    db.messages.append({"id": uid, "content": data["content"]})
-    print("Message stored:", db.messages)
-
+    db.messages.append({"id": uid, "content": data["content"], "author": current_user})
     return jsonify({uid: data["content"]}), 200
 
 
 @app.route("/messages", methods=["GET"])
+@jwt_required()
 def receive_message():
-    schema = schemas.MessageSchema()
-
-    try:
-        schema.load({"content": "dummy"})
-    except ValidationError as e:
-        return jsonify({"Error": e.messages["content"]}), 404
-
     return jsonify(db.messages), 200
 
 
 @app.route("/modify/<message_id>", methods=["PUT"])
+@jwt_required()
 def modify_resource(message_id):
+    current_user = verify_token()
     schema = schemas.ModifyMessageSchema()
     request_data = request.json
-    print(request_data)
     request_data["message_id"] = message_id
-    print(request_data)
+
     try:
         schema.load(request_data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
-    i = 0
-    while db.messages[i]["id"] != message_id:
-        i += 1
-    db.messages[i]["content"] = request_data["content"]
-    return jsonify({message_id: db.messages[i]["content"]}), 200
+    for message in db.messages:
+        if message["id"] == message_id:
+            if message["author"] != current_user:
+                return jsonify({"Error": "Unauthorized modification attempt"}), 403
+            message["content"] = request_data["content"]
+            return jsonify({message_id: message["content"]}), 200
+
+    return jsonify({"Error": "Message not found"}), 404
 
 
 @app.route("/delete/<message_id>", methods=["DELETE"])
+@jwt_required()
 def delete_resource(message_id):
-    schema = schemas.DeleteMessageSchema()
-    data = {"message_id": message_id}
-    print(data)
-    try:
-        schema.load(data)
-    except ValidationError as e:
-        return jsonify({"Error": e.messages}), 404
+    current_user = verify_token()
 
-    i = 0
-    while db.messages[i]["id"] != message_id:
-        i += 1
+    for i, message in enumerate(db.messages):
+        if message["id"] == message_id:
+            if message["author"] != current_user:
+                return jsonify({"Error": "Unauthorized deletion attempt"}), 403
+            del db.messages[i]
+            return jsonify({"Message": "Deleted successfully"}), 200
 
-    del db.messages[i]
-    return jsonify({"Message": "Deleted successfully"}), 200
+    return jsonify({"Error": "Message not found"}), 404
 
 
 @app.route("/register", methods=["POST"])
@@ -87,29 +89,20 @@ def create_user():
     data = request.json
     username = data.get("username")
     password = data.get("password")
+
     try:
         schema.load(data)
+        if username in users_db.users:
+            return jsonify({"Error": "User already exists"}), 400
         users_db.users[username] = password
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 400
 
-    return jsonify({username: password}), 200
-
-
-@app.route("/users", methods=["GET"])
-def get_users():
-    schema = schemas.UserSchema()
-    try:
-        schema.load({"content": "dummy"})
-    except ValidationError as e:
-        return jsonify({"Error": "User database empty"}), 404
-
-    return jsonify(users_db.users), 200
+    return jsonify({username: "registered successfully"}), 200
 
 
 @app.route("/login", methods=["POST"])
-@jwt_required()
-def generate_token():
+def login():
     schema = schemas.LoginSchema()
     data = request.json
     username = data.get("username")
@@ -118,41 +111,19 @@ def generate_token():
     try:
         schema.load(data)
         if users_db.users.get(username) == password:
-            access_token = create_access_token(identity=username)
-            return jsonify({"Access Token": access_token}), 200
+            access_token = generate_token(username)
+            return jsonify({"token": access_token}), 200
         else:
-            return jsonify({"Error": "Password incorrect"}), 401
-
+            return jsonify({"Error": "Invalid credentials"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 400
 
 
-@app.route("/logout", methods=["DELETE", "POST"])
-def delete_user():
-    schema = schemas.LogoutSchema()
-    data = request.json
-    username = data.get("username")
-    password = data.get("password")
-
-    try:
-        schema.load(data)
-        if users_db.users[username] == password:
-            session.pop("username", None)
-            session.clear()
-            if not session.get("logged_id"):
-                return jsonify({"Success": "Session ended"}), 200
-
-        else:
-            return jsonify({"Error": "password incorrect"}), 401
-
-    except ValidationError as e:
-        return jsonify({"Error": "Credentials incorrect"}), 401
-
-
 @app.route("/")
 def index():
-    return """<h1>Message Application</h1><p>Modify endpoints for different requests.</p>"""
+    return """<h1>Message Application</h1><p>Endpoints secured with JWT.</p>"""
 
 
 if __name__ == "__main__":
     app.run("127.0.0.1", port=5000, debug=True)
+
