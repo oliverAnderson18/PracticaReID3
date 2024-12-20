@@ -1,3 +1,3 @@
 from typing import Dict
 
-messages = []
+messages = {}

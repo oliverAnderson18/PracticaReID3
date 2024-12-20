@@ -32,8 +32,9 @@ def send_message():
         schema.load(data)
         if get_jwt_identity():
             uid = uuid.uuid4().hex
-        db.messages.append({"id": uid, "content": data["content"]})
-        return jsonify({uid: data["content"]}), 200
+            db.messages[uid] = {"content": data["content"]}
+            print("Message stored:", db.messages)
+            return jsonify({uid: data["content"]}), 200
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
@@ -42,6 +43,11 @@ def send_message():
 @jwt_required()
 def receive_message():
     if get_jwt_identity():
+        schema = schemas.MessageSchema()
+        try:
+            schema.load({"content": "dummy"})
+        except ValidationError as e:
+            return jsonify({"Error": e.messages["content"]}), 404
         return jsonify(db.messages), 200
 
 
@@ -55,11 +61,8 @@ def modify_resource(message_id):
     try:
         schema.load(request_data)
         if get_jwt_identity():
-            i = 0
-            while db.messages[i]["id"] != message_id:
-                i+=1
-            db.messages[i]["content"] = request_data["content"]
-            return jsonify({message_id: db.messages[i]["content"]}), 200
+            db.messages[message_id]["content"] = request_data["content"]
+            return jsonify({message_id: db.messages[message_id]["content"]}), 200
         
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
@@ -74,16 +77,11 @@ def delete_resource(message_id):
     try:
         schema.load(data)
         if get_jwt_identity():
-            i = 0
-            while db.messages[i]["id"] != message_id:
-                i+=1
-            del db.messages[i]
+            del db.messages[message_id]
             return jsonify({"Message": "Deleted successfully"}), 200
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
     
-
-
 
 @app.route("/register", methods=["POST"])
 def create_user():

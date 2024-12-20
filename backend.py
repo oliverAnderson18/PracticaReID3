@@ -23,65 +23,51 @@ def send_message():
     print("Headers:", request.headers)
     print("JSON Data:", request.json)
 
-    schema = schemas.SendMessageSchema()
     data = request.json
+    schema = schemas.SendMessageSchema()
     try:
         schema.load(data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
     uid = uuid.uuid4().hex
-    db.messages.append({"id": uid, "content": data["content"]})
+    db.messages[uid] = {"content": data["content"]}
     print("Message stored:", db.messages)
-
     return jsonify({uid: data["content"]}), 200
+
 
 @app.route("/messages", methods=["GET"])
 def receive_message():
     schema = schemas.MessageSchema()
-
     try:
         schema.load({"content": "dummy"})
     except ValidationError as e:
         return jsonify({"Error": e.messages["content"]}), 404
-
     return jsonify(db.messages), 200
 
 
 @app.route("/modify/<message_id>", methods=["PUT"])
 def modify_resource(message_id):
-    schema = schemas.ModifyMessageSchema()
     request_data = request.json
-    print(request_data)
     request_data["message_id"] = message_id
-    print(request_data)
+    schema = schemas.ModifyMessageSchema()
     try:
         schema.load(request_data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
-
-    i = 0
-    while db.messages[i]["id"] != message_id:
-        i+=1
-    db.messages[i]["content"] = request_data["content"]
-    return jsonify({message_id: db.messages[i]["content"]}), 200
+    db.messages[message_id]["content"] = request_data["content"]
+    return jsonify({message_id: db.messages[message_id]["content"]}), 200
 
 
 @app.route("/delete/<message_id>", methods=["DELETE"])
 def delete_resource(message_id):
-    schema = schemas.DeleteMessageSchema()
     data = {"message_id": message_id}
-    print(data)
+    schema = schemas.DeleteMessageSchema()
     try:
         schema.load(data)
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
-    
-    i = 0
-    while db.messages[i]["id"] != message_id:
-        i+=1
-
-    del db.messages[i]
+    del db.messages[message_id]
     return jsonify({"Message": "Deleted successfully"}), 200
 
 

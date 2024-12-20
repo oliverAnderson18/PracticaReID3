@@ -119,12 +119,28 @@ def test_bad_session():
     test_delete_user(user_data7)
 
 def test_good():
-    data = {"content": "Hola desde requests"}
-    values = test_post_message(data)
+    data1 = {"content": "1"}
+    data2 = {"content": "2"}
+    data3 = {"content": "3"}
+    values1 = test_post_message(data1)
+    values2 = test_post_message(data2)
+    values3 = test_post_message(data3)
     payload = {"content": "Mensaje actualizado con requests"}
     test_get_messages()
-    test_put_message(values[0], payload)
-    test_delete_message(values[0])
+    test_put_message(values2[0], payload)
+    test_get_messages()
+    test_delete_message(values3[0])
+    test_get_messages()
+
+def test_bad():
+    data = {"content": "Hola desde requests"}
+    test_get_messages() #Nothing in db so it must be 404
+    test_bad_post()
+    values = test_post_message(data)
+    test_put_message(1341, {"content": "Mensaje actualizado con requests"})
+    test_bad_put(values[0])
+    test_delete_message(234)
+
 
 
 def test_prueba():
@@ -132,15 +148,6 @@ def test_prueba():
     test_create_user(user_data)
     test_generate_cookie(user_data)
     test_delete_user(user_data)
-
-def test_bad():
-    data = {"content": "Hola desde requests"}
-    test_get_messages() #Nothing in db so it must be 404
-    test_bad_post()
-    values = test_post_message(data)
-    test_put_message(1341)
-    test_bad_put(values[0])
-    test_delete_message(234)
 
 def test_get_session():
     user_data = {"username": "JoseMa", "password": "miMa2dresita"}
@@ -165,7 +172,7 @@ def test_get_session():
 if __name__ == "__main__":
     #test_good()
     #test_bad()
-    #test_good_session()
+    test_good_session()
     #test_bad_session()
     #test_prueba()
-    test_get_session()
+    #test_get_session()
