@@ -4,7 +4,7 @@ access_token = None
 
 
 def test_post_message(data):
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = {"Authorization": f"Bearer {"access_token"}"}
     response = requests.post(f"http://127.0.0.1:5000/send", json=data, headers=headers)
     print("POST Response:", response.status_code, response.json())
     if response.status_code == 200:
