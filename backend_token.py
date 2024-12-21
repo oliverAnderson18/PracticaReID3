@@ -35,6 +35,8 @@ def send_message():
             db.messages[uid] = {"content": data["content"]}
             print("Message stored:", db.messages)
             return jsonify({uid: data["content"]}), 200
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
@@ -49,7 +51,8 @@ def receive_message():
         except ValidationError as e:
             return jsonify({"Error": e.messages["content"]}), 404
         return jsonify(db.messages), 200
-
+    else:
+        return jsonify({"Error": "unauthorized token"}), 401
 
 @app.route("/modify/<message_id>", methods=["PUT"])
 @jwt_required()
@@ -63,7 +66,8 @@ def modify_resource(message_id):
         if get_jwt_identity():
             db.messages[message_id]["content"] = request_data["content"]
             return jsonify({message_id: db.messages[message_id]["content"]}), 200
-        
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
@@ -79,6 +83,8 @@ def delete_resource(message_id):
         if get_jwt_identity():
             del db.messages[message_id]
             return jsonify({"Message": "Deleted successfully"}), 200
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
     
@@ -107,6 +113,8 @@ def get_users():
         schema.load({"content": "dummy"})
         if get_jwt_identity():
             return jsonify(users_db.users), 200
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": "User database empty"}), 404
 
