@@ -1,5 +1,4 @@
 import requests
-from db import messages
 
 session = requests.Session()
 access_token = None

@@ -13,7 +13,7 @@ import os
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 print(os.getenv("SECRET_KEY"))
-print("SECRET_KEY configurado:", app.config["SECRET_KEY"])
+print("SECRET_KEY configurated:", app.config["SECRET_KEY"])
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 

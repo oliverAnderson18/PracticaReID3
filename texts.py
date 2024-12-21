@@ -1,15 +1,16 @@
 from flask import Blueprint
 from flask import request, jsonify
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 import db
 import uuid
 import schemas
 
-users_bp = Blueprint("users", __name__)
+texts_bp = Blueprint("texts", __name__)
 
 
-@users_bp.route("/send", methods=["POST"])
+@texts_bp.route("/send", methods=["POST"])
+@jwt_required()
 def send_message():
     schema = schemas.SendMessageSchema()
     data = request.json
@@ -21,11 +22,14 @@ def send_message():
             db.messages[uid] = {"content": data["content"]}
             print("Message stored:", db.messages)
             return jsonify({uid: data["content"]}), 200
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
 
-@users_bp.route("/messages", methods=["GET"])
+@texts_bp.route("/messages", methods=["GET"])
+@jwt_required()
 def receive_message():
     if get_jwt_identity():
         schema = schemas.MessageSchema()
@@ -34,9 +38,12 @@ def receive_message():
         except ValidationError as e:
             return jsonify({"Error": e.messages["content"]}), 404
         return jsonify(db.messages), 200
+    else:
+        return jsonify({"Error": "unauthorized token"}), 401
 
 
-@users_bp.route("/modify/<message_id>", methods=["PUT"])
+@texts_bp.route("/modify/<message_id>", methods=["PUT"])
+@jwt_required()
 def modify_resource(message_id):
     schema = schemas.ModifyMessageSchema()
     request_data = request.json
@@ -47,12 +54,14 @@ def modify_resource(message_id):
         if get_jwt_identity():
             db.messages[message_id]["content"] = request_data["content"]
             return jsonify({message_id: db.messages[message_id]["content"]}), 200
-
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
 
 
-@users_bp.route("/modify/<message_id>", methods=["DELETE"])
+@texts_bp.route("/delete/<message_id>", methods=["DELETE"])
+@jwt_required()
 def delete_resource(message_id):
     schema = schemas.DeleteMessageSchema()
     data = {"message_id": message_id}
@@ -62,5 +71,7 @@ def delete_resource(message_id):
         if get_jwt_identity():
             del db.messages[message_id]
             return jsonify({"Message": "Deleted successfully"}), 200
+        else:
+            return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 404
