@@ -31,21 +31,15 @@ def store_admin():
 
 @users_bp.route("/grant", methods=["PUT", "POST"])
 def grant_admin():
-    schema = schemas.LoginSchema()
     data = request.json
-    username = data.get("username")
-    password = data.get("password")
+    user1 = data.get("user1")
+    user2 = data.get("user2")
 
-    try:
-        schema.load(data)
-        if check_password_hash(users_db.users[username], password):
-            if users_db.users[username["is_admin"]]:
-                return jsonify({"Message": "Admin added correctly"}), 200
-        else:
-            return jsonify({"Error": "Password incorrect"}), 401
-
-    except ValidationError as e:
-        return jsonify({"Error": e.messages}), 400
+    if user1["is_admin"]:
+        user2["is_admin"] = True
+        return jsonify({"Message": f"User: {user2} is now an admin"}), 200
+    else:
+        return jsonify({"Error": f"User: {user2} can't be an admin"}), 404
 
 
 @users_bp.route("/status/<username_id>", methods=["GET"])
