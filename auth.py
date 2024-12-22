@@ -61,30 +61,3 @@ def get_users():
         return jsonify({"Error": "User database empty"}), 404
 
 
-# The next function is implemented to change a users password
-
-@auth_bp.route("/change-password", methods=["POST"])
-@jwt_required()
-def change_password():
-    schema = schemas.UserSchema()
-
-    data = request.json
-    username = data.get("username")
-    password = data.get("password")
-    new_password = data.get("new_password")
-    user_data = users_db.users.get(username)
-    stored_password_hash = user_data.get("password")
-
-    try:
-        schema.load({"content": "dummy"})
-        if get_jwt_identity():
-            if check_password_hash(stored_password_hash, password):
-                users_db.users[username]["password"] = new_password
-                return jsonify({"Message": f"{username} new password is {new_password}"}), 200
-            else:
-                return jsonify({"Error": "Password is incorrect"}), 400
-        else:
-            return jsonify({"Error": "unauthorized token"}), 401
-
-    except ValidationError:
-        return jsonify({"Error": "User not in database"})
