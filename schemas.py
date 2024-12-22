@@ -38,6 +38,10 @@ def validate_password(value):
             c.isdigit() for c in value)):
         raise ValidationError("Password incorrect")
 
+def validate_user_admin(value):
+    if not users_db.users[value]["is_admin"]:
+        raise ValidationError("The user is not an admin")
+
 
 class SendMessageSchema(Schema):
     content = fields.String(required=True, validate=validate_message)
@@ -75,3 +79,8 @@ class LogoutSchema(Schema):
     password = fields.String(required=True, validate=validate_password)
 
 
+class UserAdmin(Schema):
+    username = fields.String(required=True, validate=[validate_username_logs, validate_user_admin])
+
+class StatusUser(Schema):
+    username = fields.String(required=True, validate=validate_username_logs)
