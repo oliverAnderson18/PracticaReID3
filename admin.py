@@ -72,4 +72,3 @@ def checkout_password():
             return jsonify({"Error": f"{user1} must be an admin to check out {user2}'s password"}), 404
     else:
         return jsonify({"Error": "The password is incorrect"}), 404
-    
