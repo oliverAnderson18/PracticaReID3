@@ -21,7 +21,6 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(minutes=30)
 jwt = JWTManager(app)
 
 
-
 @app.route("/send", methods=["POST"])
 @jwt_required()
 def send_message():
@@ -53,6 +52,7 @@ def receive_message():
         return jsonify(db.messages), 200
     else:
         return jsonify({"Error": "unauthorized token"}), 401
+
 
 @app.route("/modify/<message_id>", methods=["PUT"])
 @jwt_required()

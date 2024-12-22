@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, jsonify
-from flask_jwt_extended import get_jwt_identity, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 import db
 import uuid

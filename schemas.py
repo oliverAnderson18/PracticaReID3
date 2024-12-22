@@ -27,9 +27,11 @@ def validate_username(value):
     if not value or len(value) < 6 or " " in value or value in users_db.users:
         raise ValidationError("Username incorrect")
 
+
 def validate_username_logs(value):
     if not value or len(value) < 6 or " " in value or not value in users_db.users:
         raise ValidationError("Username incorrect")
+
 
 def validate_password(value):
     if not value or not (len(value) >= 8 and ' ' not in value and any(c.isalpha() for c in value) and any(

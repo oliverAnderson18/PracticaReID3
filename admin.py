@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import schemas
 import users_db
 
@@ -30,14 +30,20 @@ def store_admin():
 @admin_bp.route("/grant", methods=["PUT", "POST"])
 def grant_admin():
     data = request.json
-    user1 = data.get("user1")
-    user2 = data.get("user2")
+    user1 = data.get("username1")
+    user2 = data.get("username2")
+    password1 = data.get("password1")
+    password2 = data.get("password2")
 
-    if user1["is_admin"]:
-        user2["is_admin"] = True
-        return jsonify({"Message": f"User: {user2} is now an admin"}), 200
+    if check_password_hash(users_db.users[user1]["password"], password1) and check_password_hash(users_db.users[user2]["password"],
+                                                                                                 password2):
+        if users_db.users[user1]["is_admin"]:
+            users_db.users[user2]["is_admin"] = True
+            return jsonify({"Message": f"{user1} granted {user2} admin permissions"}), 200
+        else:
+            return jsonify({"Error": f"{user1} must be an admin to grant admin permission"}), 404
     else:
-        return jsonify({"Error": f"User: {user2} can't be an admin"}), 404
+        return jsonify({"Error": "Either one or both of users passwords are incorrect"}), 404
 
 
 @admin_bp.route("/status/<username_id>", methods=["GET"])
