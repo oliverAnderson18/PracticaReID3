@@ -54,3 +54,22 @@ def get_status(username_id):
     if users_db.users[username_id]:
         return users_db.users[username_id["is_admin"]], 200
     return jsonify({"Error": "Username not in database"}), 404
+
+
+# The next function is used to check out a users password only by an admin
+
+@admin_bp.route("/checkout-password", methods=["GET"])
+def checkout_password():
+    data = request.json
+    user1 = data.get("username1")
+    user2 = data.get("username2")
+    password1 = data.get("password1")
+
+    if check_password_hash(users_db.users[user1]["password"], password1):
+        if users_db.users[user1]["is_admin"]:
+            return jsonify({"Message": f"{user2} password is: {users_db.users[user2]["password"]}"}), 200
+        else:
+            return jsonify({"Error": f"{user1} must be an admin to check out {user2}'s password"}), 404
+    else:
+        return jsonify({"Error": "The password is incorrect"}), 404
+    
