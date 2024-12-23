@@ -5,6 +5,7 @@ import datetime
 from auth import auth_bp
 from texts import texts_bp
 from admin import admin_bp
+from gemini import gemini_bp
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -16,16 +17,19 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = datetime.timedelta(minutes=30)
 jwt = JWTManager(app)
 
 
-# Los blueprints de texts
+# Blueprint de texts
 app.register_blueprint(texts_bp, url_prefix="/texts")
 
-# Los blueprints de auth
+# Blueprint de auth
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
-# Los blueprints de admin
+# Blueprint de admin
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
+# Blueprint de gemini
+app.register_blueprint(gemini_bp, url_prefix="/gemini")
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run("127.0.0.1", port=5000, debug=True)
 
     

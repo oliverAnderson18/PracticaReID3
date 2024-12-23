@@ -19,9 +19,9 @@ def send_message():
         schema.load(data)
         if get_jwt_identity():
             uid = uuid.uuid4().hex
-            db.messages[uid] = {"content": data["content"]}
+            db.messages[uid] = {"content": data["content"], "ToGemini": False, "Response": None}
             print("Message stored:", db.messages)
-            return jsonify({uid: data["content"]}), 200
+            return jsonify({uid: {"content": data["content"], "ToGemini": False, "Response": None}}), 200
         else:
             return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:

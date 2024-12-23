@@ -34,12 +34,14 @@ def create_user():
     data = request.json
     username = data.get("username")
     password = data.get("password")
+    admin = data.get("is_admin", False) # Hacemos que se pase si es admin, si no es entonces es Falso
+
     try:
-        schema.load(data)
+        schema.load({"username":username, "password": password})
         passw = generate_password_hash(password)
         users_db.users[username] = {
             "password": passw,
-            "is_admin": False
+            "is_admin": bool(admin)
         }
     except ValidationError as e:
         return jsonify({"Error": e.messages}), 400
