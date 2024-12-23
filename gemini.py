@@ -21,7 +21,7 @@ def generate_gemini():
             result = model.generate_content(data["content"])
             uid = uuid.uuid4().hex
             db.messages[uid] = {"content": data["content"], "ToGemini": True, "Response": result.text}
-            return jsonify({uid: {"ToGemini": True, "Response": result.text}}), 200
+            return jsonify({uid: {"content": data["content"], "ToGemini": True, "Response": result.text}}), 200
         else:
             return jsonify({"Error": "unauthorized token"}), 401
     except ValidationError as e:

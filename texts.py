@@ -36,7 +36,7 @@ def receive_message():
         try:
             schema.load({"content": "dummy"})
         except ValidationError as e:
-            return jsonify({"Error": e.messages["content"]}), 404
+            return jsonify({"Error": e.messages}), 404
         return jsonify(db.messages), 200
     else:
         return jsonify({"Error": "unauthorized token"}), 401
